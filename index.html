@@ -8,8 +8,7 @@
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
   :root {
     --bg: #0f0f0f; --surface: #1a1a1a; --surface2: #242424;
-    --border: #2e2e2e; --accent: #e8ff5a; --accent2: #5affd6;
-    --text: #f0f0f0; --muted: #888; --radius: 6px;
+    --border: #2e2e2e; --accent: #e8ff5a; --text: #f0f0f0; --muted: #888; --radius: 6px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-weight: 300; min-height: 100vh; }
@@ -34,7 +33,6 @@
   .progress-bar { flex: 1; height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; }
   .progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s ease; }
   .study-body { max-width: 1200px; margin: 0 auto; padding: 40px 32px 80px; }
-  .section-badge { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent2); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; }
   .prompt-text { font-size: 20px; font-weight: 500; margin-bottom: 32px; line-height: 1.4; max-width: 720px; }
   .images-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 40px; }
   .image-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
@@ -51,12 +49,12 @@
   .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--border); }
   .step-counter { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--muted); }
   #outro { align-items: center; justify-content: center; padding: 60px 24px; }
-  .outro-card { max-width: 560px; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 48px; text-align: center; }
+  .outro-card { max-width: 480px; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 48px; text-align: center; }
   .check-icon { width: 56px; height: 56px; border-radius: 50%; background: rgba(232,255,90,.12); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 24px; }
   .outro-card h2 { font-size: 24px; font-weight: 600; margin-bottom: 12px; }
-  .outro-card p { color: #bbb; line-height: 1.7; margin-bottom: 24px; font-size: 15px; }
-  .result-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); text-align: left; word-break: break-all; max-height: 140px; overflow-y: auto; margin-bottom: 20px; }
-  .btn-row { display: flex; gap: 12px; justify-content: center; }
+  .outro-card p { color: #bbb; line-height: 1.7; font-size: 15px; }
+  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -82,13 +80,12 @@
     <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
   </div>
   <div class="study-body">
-    <div class="section-badge" id="sectionBadge">SDXL</div>
     <p class="prompt-text" id="promptText"></p>
     <div class="images-grid" id="imagesGrid"></div>
     <div class="questions">
       <div class="question-block">
         <h3>① Text Alignment</h3>
-        <p>Which image best reflects the given text prompt?</p>
+        <p>Which image best reflects the given text prompt? Consider whether all objects, attributes, and relations are correctly depicted.</p>
         <div class="choice-group" id="choiceTA">
           <button class="choice-btn" onclick="select('ta','A')">A</button>
           <button class="choice-btn" onclick="select('ta','B')">B</button>
@@ -97,7 +94,7 @@
       </div>
       <div class="question-block">
         <h3>② Visual Quality</h3>
-        <p>Which image has the best overall visual quality?</p>
+        <p>Which image has the best overall visual quality? Consider sharpness, coherence, realism, and aesthetic appeal — independent of the prompt.</p>
         <div class="choice-group" id="choiceVQ">
           <button class="choice-btn" onclick="select('vq','A')">A</button>
           <button class="choice-btn" onclick="select('vq','B')">B</button>
@@ -119,57 +116,49 @@
   <div class="outro-card">
     <div class="check-icon">✓</div>
     <h2>Thank you!</h2>
-    <p>Please download your results and send the file to the researcher.</p>
-    <div class="result-box" id="resultBox"></div>
-    <div class="btn-row">
-      <button class="btn" onclick="copyResults()">Copy Results</button>
-      <button class="btn btn-ghost" onclick="downloadResults()">Download JSON</button>
-    </div>
+    <p id="outroMsg">Your responses have been submitted successfully.</p>
   </div>
 </div>
 
 <script>
-var BASE = "https://raw.githubusercontent.com/anonrebuttal/icmlrebuttal/master/images/";
+var FORM_ID  = "1FAIpQLSfF3hRh9b7VBdRdym4rcfNnVZWO5QKmnAEZL06o24I4_tCczg";
+var ENTRY_ID = "entry.474230409";
+var BASE     = "https://raw.githubusercontent.com/anonrebuttal/icmlrebuttal/master/images/";
 
 var PROMPTS = [
   // SDXL / CFG
-  { section:"SDXL", prompt:"A vehicle to the side which is carrying a load appears that it is running into the signage.", folder: BASE+"sdxl/prompt_01" },
-  { section:"SDXL", prompt:"The LG cell phone shows a date of January 27, 2010.", folder: BASE+"sdxl/prompt_02" },
-  { section:"SDXL", prompt:"A cat laying next to a shoe on the ground.", folder: BASE+"sdxl/prompt_03" },
-  { section:"SDXL", prompt:"A white and red bus driving down a busy street.", folder: BASE+"sdxl/prompt_04" },
+  { prompt:"A vehicle to the side which is carrying a load appears that it is running into the signage.", folder: BASE+"sdxl/prompt_01" },
+  { prompt:"The LG cell phone shows a date of January 27, 2010.", folder: BASE+"sdxl/prompt_02" },
+  { prompt:"A cat laying next to a shoe on the ground.", folder: BASE+"sdxl/prompt_03" },
+  { prompt:"A white and red bus driving down a busy street.", folder: BASE+"sdxl/prompt_04" },
   // SDXL / APG
-  { section:"SDXL", prompt:"A man on his bike talking on a cell.", folder: BASE+"sdxl/prompt_05" },
-  { section:"SDXL", prompt:"A blue and white train passing houses while emitting smoke.", folder: BASE+"sdxl/prompt_06" },
-  { section:"SDXL", prompt:"A long yellow train that is on a train track.", folder: BASE+"sdxl/prompt_07" },
-  { section:"SDXL", prompt:"A group of bicyclists speeding up a city street.", folder: BASE+"sdxl/prompt_08" },
+  { prompt:"A man on his bike talking on a cell.", folder: BASE+"sdxl/prompt_05" },
+  { prompt:"A blue and white train passing houses while emitting smoke.", folder: BASE+"sdxl/prompt_06" },
+  { prompt:"A long yellow train that is on a train track.", folder: BASE+"sdxl/prompt_07" },
+  { prompt:"A group of bicyclists speeding up a city street.", folder: BASE+"sdxl/prompt_08" },
   // SDXL / PAG
-  { section:"SDXL", prompt:"A photo of a dog right of a teddy bear.", folder: BASE+"sdxl/prompt_09" },
-  { section:"SDXL", prompt:"A photo of a bench left of a bear.", folder: BASE+"sdxl/prompt_10" },
-  { section:"SDXL", prompt:"A photo of an elephant below a horse.", folder: BASE+"sdxl/prompt_11" },
-  { section:"SDXL", prompt:"A photo of a yellow car and an orange toothbrush.", folder: BASE+"sdxl/prompt_12" },
+  { prompt:"A photo of a dog right of a teddy bear.", folder: BASE+"sdxl/prompt_09" },
+  { prompt:"A photo of a bench left of a bear.", folder: BASE+"sdxl/prompt_10" },
+  { prompt:"A photo of an elephant below a horse.", folder: BASE+"sdxl/prompt_11" },
+  { prompt:"A photo of a yellow car and an orange toothbrush.", folder: BASE+"sdxl/prompt_12" },
   // Flux-Schnell
-  { section:"Flux", prompt:"A photo of a black kite and a green bear.", folder: BASE+"flux/prompt_01" },
-  { section:"Flux", prompt:"A photo of a white bottle and a blue sheep.", folder: BASE+"flux/prompt_02" },
-  { section:"Flux", prompt:"A photo of a cat below a backpack.", folder: BASE+"flux/prompt_03" },
-  { section:"Flux", prompt:"A photo of a brown computer mouse and a purple bottle.", folder: BASE+"flux/prompt_04" },
+  { prompt:"A photo of a black kite and a green bear.", folder: BASE+"flux/prompt_01" },
+  { prompt:"A photo of a white bottle and a blue sheep.", folder: BASE+"flux/prompt_02" },
+  { prompt:"A photo of a cat below a backpack.", folder: BASE+"flux/prompt_03" },
+  { prompt:"A photo of a brown computer mouse and a purple bottle.", folder: BASE+"flux/prompt_04" },
   // Flux-Dev
-  { section:"Flux", prompt:"A photo of a dog right of a teddy bear.", folder: BASE+"flux/prompt_05" },
-  { section:"Flux", prompt:"A photo of a toaster below a traffic light.", folder: BASE+"flux/prompt_06" },
-  { section:"Flux", prompt:"A photo of a bus above a boat.", folder: BASE+"flux/prompt_07" },
-  { section:"Flux", prompt:"A photo of a yellow bicycle and a red motorcycle.", folder: BASE+"flux/prompt_08" },
+  { prompt:"A photo of a dog right of a teddy bear.", folder: BASE+"flux/prompt_05" },
+  { prompt:"A photo of a toaster below a traffic light.", folder: BASE+"flux/prompt_06" },
+  { prompt:"A photo of a bus above a boat.", folder: BASE+"flux/prompt_07" },
+  { prompt:"A photo of a yellow bicycle and a red motorcycle.", folder: BASE+"flux/prompt_08" },
 ];
 
-// ── STATE ──
-var current = 0;
-var answers = [];
-var curTA = null;
-var curVQ = null;
+var current = 0, answers = [], curTA = null, curVQ = null;
 
 function shuffle(arr) {
   var a = arr.slice();
-  for (var i = a.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  for (var i = a.length-1; i > 0; i--) {
+    var j = Math.floor(Math.random()*(i+1)), t = a[i]; a[i]=a[j]; a[j]=t;
   }
   return a;
 }
@@ -177,46 +166,42 @@ function shuffle(arr) {
 function startStudy() {
   answers = PROMPTS.map(function() {
     var order = shuffle(['method1','method2','method3']);
-    return { ta: null, vq: null, mapping: { A: order[0], B: order[1], C: order[2] } };
+    return { ta:null, vq:null, mapping:{A:order[0], B:order[1], C:order[2]} };
   });
   showScreen('study');
   renderPrompt();
 }
 
 function renderPrompt() {
-  var p = PROMPTS[current];
-  var ans = answers[current];
-  document.getElementById('sectionBadge').textContent = p.section;
-  document.getElementById('promptText').textContent = '"' + p.prompt + '"';
+  var p = PROMPTS[current], ans = answers[current];
+  document.getElementById('promptText').textContent = '\u201c' + p.prompt + '\u201d';
   document.getElementById('progressLabel').textContent = current + ' / ' + PROMPTS.length;
-  document.getElementById('progressFill').style.width = (current / PROMPTS.length * 100) + '%';
-  document.getElementById('stepCounter').textContent = 'Prompt ' + (current+1) + ' of ' + PROMPTS.length;
+  document.getElementById('progressFill').style.width = (current/PROMPTS.length*100) + '%';
+  document.getElementById('stepCounter').textContent = 'Prompt '+(current+1)+' of '+PROMPTS.length;
 
   var grid = document.getElementById('imagesGrid');
   grid.innerHTML = '';
   ['A','B','C'].forEach(function(label) {
-    var method = ans.mapping[label];
-    var imgPath = p.folder + '/' + method + '.jpg';
-    grid.innerHTML += '<div class="image-card"><div class="image-label">' + label + '</div><img src="' + imgPath + '" alt="Image ' + label + '" loading="eager"></div>';
+    var src = p.folder + '/' + ans.mapping[label] + '.jpg';
+    grid.innerHTML += '<div class="image-card"><div class="image-label">'+label+'</div><img src="'+src+'" alt="'+label+'" loading="eager"></div>';
   });
 
   curTA = ans.ta; curVQ = ans.vq;
   ['A','B','C'].forEach(function(l) {
-    document.querySelector('#choiceTA [onclick="select(\'ta\',\'' + l + '\')"]').classList.toggle('selected', curTA === l);
-    document.querySelector('#choiceVQ [onclick="select(\'vq\',\'' + l + '\')"]').classList.toggle('selected', curVQ === l);
+    document.querySelector('#choiceTA [onclick="select(\'ta\',\''+l+'\')"]').classList.toggle('selected', curTA===l);
+    document.querySelector('#choiceVQ [onclick="select(\'vq\',\''+l+'\')"]').classList.toggle('selected', curVQ===l);
   });
-
-  document.getElementById('prevBtn').style.display = current > 0 ? 'inline-flex' : 'none';
-  document.getElementById('nextBtn').textContent = current === PROMPTS.length - 1 ? 'Finish ✓' : 'Next →';
+  document.getElementById('prevBtn').style.display = current>0 ? 'inline-flex' : 'none';
+  document.getElementById('nextBtn').textContent = current===PROMPTS.length-1 ? 'Finish \u2713' : 'Next \u2192';
 }
 
 function select(type, label) {
-  if (type === 'ta') {
-    curTA = label; answers[current].ta = label;
-    document.querySelectorAll('#choiceTA .choice-btn').forEach(function(b) { b.classList.toggle('selected', b.textContent.trim() === label); });
+  if (type==='ta') {
+    curTA=label; answers[current].ta=label;
+    document.querySelectorAll('#choiceTA .choice-btn').forEach(function(b){ b.classList.toggle('selected', b.textContent.trim()===label); });
   } else {
-    curVQ = label; answers[current].vq = label;
-    document.querySelectorAll('#choiceVQ .choice-btn').forEach(function(b) { b.classList.toggle('selected', b.textContent.trim() === label); });
+    curVQ=label; answers[current].vq=label;
+    document.querySelectorAll('#choiceVQ .choice-btn').forEach(function(b){ b.classList.toggle('selected', b.textContent.trim()===label); });
   }
 }
 
@@ -225,17 +210,12 @@ function nextPrompt() {
     alert('Please answer both questions before continuing.');
     return;
   }
-  if (current === PROMPTS.length - 1) {
-    finishStudy();
-  } else {
-    current++;
-    renderPrompt();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+  if (current===PROMPTS.length-1) { finishStudy(); }
+  else { current++; renderPrompt(); window.scrollTo({top:0,behavior:'smooth'}); }
 }
 
 function prevPrompt() {
-  if (current > 0) { current--; renderPrompt(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  if (current>0) { current--; renderPrompt(); window.scrollTo({top:0,behavior:'smooth'}); }
 }
 
 function finishStudy() {
@@ -243,35 +223,48 @@ function finishStudy() {
     timestamp: new Date().toISOString(),
     responses: answers.map(function(ans, i) {
       return {
-        prompt_id: i, prompt: PROMPTS[i].prompt, section: PROMPTS[i].section,
+        prompt_id: i,
+        prompt: PROMPTS[i].prompt,
         mapping: ans.mapping,
         ta_label: ans.ta, ta_method: ans.mapping[ans.ta],
         vq_label: ans.vq, vq_method: ans.mapping[ans.vq],
       };
     })
   };
-  window._results = results;
-  document.getElementById('resultBox').textContent = JSON.stringify(results, null, 2);
+
+  // Show outro first
   showScreen('outro');
-}
+  document.getElementById('outroMsg').innerHTML = '<span class="spinner"></span> Submitting...';
 
-function copyResults() {
-  navigator.clipboard.writeText(JSON.stringify(window._results, null, 2)).then(function() { alert('Copied!'); });
-}
+  // Submit to Google Forms via hidden iframe (no CORS issue)
+  var payload = encodeURIComponent(JSON.stringify(results));
+  var iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.name = 'hidden_iframe';
+  document.body.appendChild(iframe);
 
-function downloadResults() {
-  var blob = new Blob([JSON.stringify(window._results, null, 2)], { type: 'application/json' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'user_study_' + Date.now() + '.json';
-  a.click();
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = 'https://docs.google.com/forms/d/e/' + FORM_ID + '/formResponse';
+  form.target = 'hidden_iframe';
+
+  var input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = ENTRY_ID;
+  input.value = JSON.stringify(results);
+  form.appendChild(input);
+  document.body.appendChild(form);
+  form.submit();
+
+  setTimeout(function() {
+    document.getElementById('outroMsg').textContent = 'Your responses have been submitted successfully. You may close this tab.';
+  }, 2000);
 }
 
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
 }
 </script>
 </body>
 </html>
-
