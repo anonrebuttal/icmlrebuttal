@@ -13,7 +13,7 @@
 //      method3.jpg  ← Ours (GAG)
 // ══════════════════════════════════════════════════════
 
-const PROMPTS = [
+var PROMPTS = [
 
   // ── SDXL / CFG (prompt_01 ~ 04) ───────────────────
   {
