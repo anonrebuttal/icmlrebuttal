@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Quality User Study</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --accent: #e8ff5a;
+    --accent2: #5affd6;
+    --text: #f0f0f0;
+    --muted: #888;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── INTRO ── */
+  #intro {
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+  }
+
+  .intro-card {
+    max-width: 640px;
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 48px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 3px 10px;
+    border-radius: 99px;
+    margin-bottom: 24px;
+  }
+
+  .intro-card h1 {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.25;
+    margin-bottom: 20px;
+  }
+
+  .intro-card p {
+    color: #bbb;
+    line-height: 1.7;
+    margin-bottom: 16px;
+    font-size: 15px;
+  }
+
+  .rule-list {
+    background: var(--surface2);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin: 24px 0;
+    list-style: none;
+  }
+
+  .rule-list li {
+    font-size: 14px;
+    color: #ccc;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .rule-list li:last-child { border-bottom: none; }
+
+  .rule-list li::before {
+    content: '→';
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #000;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 28px;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: opacity .15s, transform .1s;
+    text-decoration: none;
+  }
+
+  .btn:hover { opacity: .88; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover { border-color: var(--muted); opacity: 1; }
+
+  /* ── STUDY ── */
+  #study { padding: 0; }
+
+  .study-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,15,15,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .progress-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width .4s ease;
+  }
+
+  .study-body {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+
+  .section-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .prompt-text {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 32px;
+    line-height: 1.4;
+    max-width: 720px;
+  }
+
+  .images-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .image-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .image-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    padding: 10px;
+    background: var(--surface2);
+    letter-spacing: .08em;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .image-card img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── QUESTIONS ── */
+  .questions { display: flex; flex-direction: column; gap: 28px; }
+
+  .question-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+  }
+
+  .question-block h3 {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .question-block p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+
+  .choice-group {
+    display: flex;
+    gap: 12px;
+  }
+
+  .choice-btn {
+    flex: 1;
+    padding: 14px;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    text-align: center;
+  }
+
+  .choice-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(232,255,90,.06);
+  }
+
+  .choice-btn.selected {
+    border-color: var(--accent);
+    background: rgba(232,255,90,.12);
+    color: var(--accent);
+  }
+
+  /* ── NAV ── */
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+  }
+
+  .step-counter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* ── OUTRO ── */
+  #outro {
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+  }
+
+  .outro-card {
+    max-width: 560px;
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 48px;
+    text-align: center;
+  }
+
+  .check-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(232,255,90,.12);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 24px;
+  }
+
+  .outro-card h2 { font-size: 24px; font-weight: 600; margin-bottom: 12px; }
+  .outro-card p { color: #bbb; line-height: 1.7; margin-bottom: 24px; font-size: 15px; }
+
+  .result-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: left;
+    word-break: break-all;
+    max-height: 140px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+  }
+
+  .btn-row { display: flex; gap: 12px; justify-content: center; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ INTRO ═══ -->
+<div id="intro" class="screen active">
+  <div class="intro-card">
+    <span class="tag">User Study · Image Generation</span>
+    <h1>Which image is better?</h1>
+    <p>You will be shown a <strong>text prompt</strong> and <strong>three generated images</strong> (labeled A, B, C). For each prompt, please select the best image for two criteria.</p>
+    <ul class="rule-list">
+      <li>There are <strong>20 prompts</strong> in total. Takes about <strong>10 minutes</strong>.</li>
+      <li>Images are shown in <strong>random order</strong> — labels carry no meaning.</li>
+      <li>Judge each prompt <strong>independently</strong>.</li>
+      <li>There is <strong>no right or wrong answer</strong> — trust your instinct.</li>
+    </ul>
+    <button class="btn" onclick="startStudy()">Begin Study →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ STUDY ═══ -->
+<div id="study" class="screen">
+  <div class="study-header">
+    <span class="progress-label" id="progressLabel">0 / 20</span>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="study-body">
+    <div class="section-badge" id="sectionBadge">SDXL</div>
+    <p class="prompt-text" id="promptText"></p>
+
+    <div class="images-grid" id="imagesGrid"></div>
+
+    <div class="questions">
+      <div class="question-block">
+        <h3>① Text Alignment</h3>
+        <p>Which image best reflects the given text prompt? Consider whether all objects, attributes, and spatial relations are correctly depicted.</p>
+        <div class="choice-group" id="choiceTA">
+          <button class="choice-btn" onclick="select('ta','A')">A</button>
+          <button class="choice-btn" onclick="select('ta','B')">B</button>
+          <button class="choice-btn" onclick="select('ta','C')">C</button>
+        </div>
+      </div>
+
+      <div class="question-block">
+        <h3>② Visual Quality</h3>
+        <p>Which image has the best overall visual quality? Consider sharpness, coherence, realism, and aesthetic appeal — independent of the prompt.</p>
+        <div class="choice-group" id="choiceVQ">
+          <button class="choice-btn" onclick="select('vq','A')">A</button>
+          <button class="choice-btn" onclick="select('vq','B')">B</button>
+          <button class="choice-btn" onclick="select('vq','C')">C</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <span class="step-counter" id="stepCounter">Prompt 1 of 20</span>
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-ghost" id="prevBtn" onclick="prevPrompt()" style="display:none">← Back</button>
+        <button class="btn" id="nextBtn" onclick="nextPrompt()">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ OUTRO ═══ -->
+<div id="outro" class="screen">
+  <div class="outro-card">
+    <div class="check-icon">✓</div>
+    <h2>Thank you!</h2>
+    <p>Your responses have been recorded. Please copy the result code below and send it to the researcher.</p>
+    <div class="result-box" id="resultBox"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="copyResults()">Copy Results</button>
+      <button class="btn btn-ghost" onclick="downloadResults()">Download JSON</button>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+// ─── STATE ───
+let current = 0;
+let answers = [];   // [{ta: 'A'|'B'|'C', vq: 'A'|'B'|'C', mapping: {...}}]
+let curTA = null;
+let curVQ = null;
+
+// ─── SHUFFLE ───
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ─── START ───
+function startStudy() {
+  // Pre-generate random label mappings for each prompt
+  answers = PROMPTS.map(() => {
+    const order = shuffle(['method1','method2','method3']); // method1=CFG/Base, method2=PLADIS, method3=Ours
+    return {
+      ta: null, vq: null,
+      mapping: { A: order[0], B: order[1], C: order[2] }
+    };
+  });
+
+  showScreen('study');
+  renderPrompt();
+}
+
+// ─── RENDER ───
+function renderPrompt() {
+  const p = PROMPTS[current];
+  const ans = answers[current];
+
+  // Header
+  document.getElementById('sectionBadge').textContent = p.section;
+  document.getElementById('promptText').textContent = `"${p.prompt}"`;
+  document.getElementById('progressLabel').textContent = `${current} / ${PROMPTS.length}`;
+  document.getElementById('progressFill').style.width = `${(current / PROMPTS.length) * 100}%`;
+  document.getElementById('stepCounter').textContent = `Prompt ${current + 1} of ${PROMPTS.length}`;
+
+  // Images — use the stored random mapping
+  const grid = document.getElementById('imagesGrid');
+  grid.innerHTML = '';
+  ['A','B','C'].forEach(label => {
+    const method = ans.mapping[label];
+    const imgPath = `images/${p.folder}/${method}.jpg`;
+    grid.innerHTML += `
+      <div class="image-card">
+        <div class="image-label">${label}</div>
+        <img src="${imgPath}" alt="Image ${label}" loading="lazy">
+      </div>`;
+  });
+
+  // Restore selections
+  curTA = ans.ta;
+  curVQ = ans.vq;
+  ['A','B','C'].forEach(l => {
+    document.querySelector(`#choiceTA [onclick="select('ta','${l}')"]`)
+      .classList.toggle('selected', curTA === l);
+    document.querySelector(`#choiceVQ [onclick="select('vq','${l}')"]`)
+      .classList.toggle('selected', curVQ === l);
+  });
+
+  // Nav buttons
+  document.getElementById('prevBtn').style.display = current > 0 ? 'inline-flex' : 'none';
+  document.getElementById('nextBtn').textContent =
+    current === PROMPTS.length - 1 ? 'Finish ✓' : 'Next →';
+}
+
+// ─── SELECT ───
+function select(type, label) {
+  if (type === 'ta') {
+    curTA = label;
+    answers[current].ta = label;
+    document.querySelectorAll('#choiceTA .choice-btn').forEach(b =>
+      b.classList.toggle('selected', b.textContent.trim() === label));
+  } else {
+    curVQ = label;
+    answers[current].vq = label;
+    document.querySelectorAll('#choiceVQ .choice-btn').forEach(b =>
+      b.classList.toggle('selected', b.textContent.trim() === label));
+  }
+}
+
+// ─── NAV ───
+function nextPrompt() {
+  if (!answers[current].ta || !answers[current].vq) {
+    alert('Please answer both questions before continuing.');
+    return;
+  }
+  if (current === PROMPTS.length - 1) {
+    finishStudy();
+  } else {
+    current++;
+    renderPrompt();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function prevPrompt() {
+  if (current > 0) {
+    current--;
+    renderPrompt();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+// ─── FINISH ───
+function finishStudy() {
+  // Convert label answers to method names
+  const results = {
+    timestamp: new Date().toISOString(),
+    responses: answers.map((ans, i) => ({
+      prompt_id: i,
+      prompt: PROMPTS[i].prompt,
+      section: PROMPTS[i].section,
+      mapping: ans.mapping,
+      ta_label: ans.ta,
+      ta_method: ans.mapping[ans.ta],
+      vq_label: ans.vq,
+      vq_method: ans.mapping[ans.vq],
+    }))
+  };
+
+  window._results = results;
+  document.getElementById('resultBox').textContent = JSON.stringify(results, null, 2);
+  showScreen('outro');
+}
+
+// ─── COPY / DOWNLOAD ───
+function copyResults() {
+  navigator.clipboard.writeText(JSON.stringify(window._results, null, 2))
+    .then(() => alert('Copied to clipboard!'));
+}
+
+function downloadResults() {
+  const blob = new Blob([JSON.stringify(window._results, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `user_study_${Date.now()}.json`;
+  a.click();
+}
+
+// ─── SCREEN ───
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
